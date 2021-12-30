@@ -1,9 +1,10 @@
 import os
-import time
-from copy import deepcopy
 import sys
+from copy import deepcopy
 from pathlib import Path
 from typing import List, Optional, Tuple
+
+min_path: Optional[int] = None
 
 
 def main():
@@ -27,11 +28,11 @@ def main():
         print('Impossible!')
 
 
-def find_shortest_path(matrix: List[List[str]], x: int, y: int) -> Optional[Tuple[int, List[List[str]]]]:
-    left_result: Optional[Tuple[int, List[str]]] = go(matrix, x - 1, y)
-    right_result: Optional[Tuple[int, List[str]]] = go(matrix, x + 1, y)
-    up_result: Optional[Tuple[int, List[str]]] = go(matrix, x, y + 1)
-    down_result: Optional[Tuple[int, List[str]]] = go(matrix, x, y - 1)
+def find_shortest_path(matrix: List[List[str]], x: int, y: int, so_far: int = 0) -> Optional[Tuple[int, List[List[str]]]]:
+    left_result: Optional[Tuple[int, List[str]]] = go(matrix, x - 1, y, so_far + 1)
+    right_result: Optional[Tuple[int, List[str]]] = go(matrix, x + 1, y, so_far + 1)
+    up_result: Optional[Tuple[int, List[str]]] = go(matrix, x, y + 1, so_far + 1)
+    down_result: Optional[Tuple[int, List[str]]] = go(matrix, x, y - 1, so_far + 1)
 
     current_result: Optional[Tuple[int, List[str]]] = None
 
@@ -67,21 +68,31 @@ def find_shortest_path(matrix: List[List[str]], x: int, y: int) -> Optional[Tupl
     return current_result
 
 
-def go(matrix: List[List[str]], x: int, y: int) -> Optional[Tuple[int, List[List[str]]]]:
+def go(matrix: List[List[str]], x: int, y: int, so_far: int) -> Optional[Tuple[int, List[List[str]]]]:
+    global min_path
+
+    if min_path and so_far > min_path:
+        return None
+
     if matrix[y][x] == 'E':
+        if min_path:
+            if so_far < min_path:
+                min_path = so_far
+        else:
+            min_path = so_far
         return 1, deepcopy(matrix)
 
     if matrix[y][x] == ' ':
         new_matrix: List[List[str]] = deepcopy(matrix)
         new_matrix[y][x] = '•'
 
+        print(f"So far: {so_far}")
+        print(f"Path: {min_path}")
         print('\n'.join(map(lambda arr: ''.join(arr), new_matrix)))
-
-        time.sleep(0.5)
 
         os.system('cls||clear')
 
-        result = find_shortest_path(new_matrix, x, y)
+        result = find_shortest_path(new_matrix, x, y, so_far)
 
         if result:
             return 1 + result[0], result[1]
